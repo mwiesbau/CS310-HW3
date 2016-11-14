@@ -20,13 +20,31 @@ public class IndexedFile
    public IndexedFile(Disk disk, int recordSize, int keySize, int
                       indexRecordSize int firstAllocated, int indexStart,
                       int indexSectors, int indexRoot, int indexLevels)
-   {}
+   {
+
+
+
+   }
+
+
+
    public boolean insertRecord(char[] record)
-   {}   
+   {
+
+
+
+   }
    public boolean findRecord(char[] record)
-   {}   
+   {
+
+
+   }
+
    // there is no delete operation
    private int getSector(char[] key)   // returns sector number indicated by key
-   {}  
+   {
+
+
+   }
    
 }
