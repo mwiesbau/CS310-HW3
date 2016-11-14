@@ -35,12 +35,38 @@ public class Application {
                 } // end if
             } // end while
 
+            // WRITE BUFFER TO DISK AT THE END
+            System.out.println("Writing sector " + currentSector + " to disk.");
+            disk.writeSector(currentSector, buffer.getBuffer());
+            currentSector++;
+            buffer.emptyBuffer();
+
         // CATCH EXCEPTION IF FILE NOT FOUND
         } catch (FileNotFoundException e) {
             System.out.println("Could not find file " + filename);
         } // end try catch
     } // end write file to disk
 
+
+    public static void printSector(Disk disk, int sectorNumber) {
+
+        char[] buff = new char[512];
+        disk.readSector(sectorNumber, buff);
+
+        for (int i = 0; i < buff.length; i++) {
+            // PRINT NEW LINE IF AT THE END OF RECORD
+            if ((i) % 60 == 0) {
+                System.out.println();
+            } // end if
+
+            // REPLACE EMPTY CARACTERS WITH UNDERLINE
+            if (buff[i] == '\000') {
+                System.out.print("_");
+            } else {
+                System.out.print(buff[i]);
+            } // end if else
+        } // end for
+    } // end print sector
 
     public static void main(String args[]) {
         int sectorSize = 512;
@@ -50,6 +76,7 @@ public class Application {
         Disk disk = new Disk(sectors, sectorSize);
 
         writeFileToDisk(disk, filename);
+        printSector(disk, 5);
 
 
 
