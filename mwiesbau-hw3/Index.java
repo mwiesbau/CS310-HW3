@@ -9,12 +9,13 @@ public class Index {
     private int firstDataSector;
     private int lastDataSector;
     private int lastIndexSector;
-    private int rootNode;
+    private int rootNode;                   // INDEX OF ROOT NODE
     private int currentIndexLevelStart;
     private Disk disk;
     private int recordSize;
     private Node[] nodes;
     private int lastNode;
+    private int indexLevels;
 
 
     private class Node {
@@ -85,6 +86,7 @@ public class Index {
         this.recordSize = recordSize;
         this.nodes = new Node[10];
         this.lastNode = 0;
+        this.indexLevels = 0;
 
     } // end constructor
 
@@ -128,7 +130,7 @@ public class Index {
         // 2nd BUILD THE INDEX SECTORS
         // KEEP REPEATING UNTIL ONLY THE ROOT NODE IS LEFT
         while (sectorsWritten.size() > 1) {
-
+            indexLevels++;
             // DETERMINE SECTOR RANGE
             int firstSector = sectorsWritten.get(0);
             int lastSector = sectorsWritten.get(sectorsWritten.size()-1);
@@ -140,6 +142,9 @@ public class Index {
             // WRITE THE TREE NODES TO DISK
             sectorsWritten = writeNodesToDisk();
         } // end while
+
+        indexLevels++;   // ONE ADDITIONAL INCREMENT FOR THE ROOT LEVEL
+
     } // end build index
 
     private void buildIndexTree(int startsector, int endsector) {
@@ -216,6 +221,14 @@ public class Index {
         } // end for
     } // end buildIndexForDataSectors
 
+    public int getRootSectorNumber() {
+    // RETURNS THE SECTOR NUMBER OF THE ROOT INDEX NODE
+        return rootNode;
+    } // end getRootSectorNumber
+
+    public int getIndexLevels() {
+        return indexLevels;
+    }
 
     public String toString() {
     // PRINTS ALL THE NODES IN THE INDEX

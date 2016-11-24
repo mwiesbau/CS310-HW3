@@ -10,17 +10,21 @@ class MountainRecord {
 
 
     public MountainRecord(String line) {
+
         line.replace("\n", "");
         String[] items = line.split("#");
 
         this.name = items[0];
         this.country = items[1];
         this.elevation = items[2];
+
     } // end constructor
 
 
     public MountainRecord() {
-
+        this.name = "";
+        this.country = "";
+        this.elevation = "";
     }
 
 
@@ -28,6 +32,10 @@ class MountainRecord {
         return this.name;
     }
 
+    public void setName(String name) {
+        this.name = name;
+
+    }
 
     public int getKeySize() {
         return nameSize;

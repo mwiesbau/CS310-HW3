@@ -58,35 +58,32 @@ public class Application {
         int firstDataSector = 1000;
         int lastDataSector;
         int recordSize = 60;
-
-        String filename = "mountains.txt";
+        int indexRecordSize = 34;
         Disk disk = new Disk(sectors, sectorSize);
 
+
+        // WRITE FILE TO DISK AND BUILD INDEX
+        String filename = "mountains.txt";
         lastDataSector = writeFileToDisk(disk, filename, 1000, recordSize);
-
-        /*
-        char[] carr1 = new char[sectorSize];
-        disk.readSector(1587, carr1);
-        Buffer b1 = new Buffer(carr1, recordSize);
-        System.out.println(b1.toString());
-
-        char[] carr2 = new char[sectorSize];
-        disk.readSector(1588, carr2);
-        Buffer b2 = new Buffer(carr2, recordSize);
-        System.out.println(b2.toString());
-        */
-
         Index index = new Index(disk, sectorSize, keySize, firstDataSector, lastDataSector, recordSize, 7);
-
         index.buildIndex();
+        int indexRoot = index.getRootSectorNumber();
+        int indexStart = lastDataSector + 1;
+        int indexSectors = indexRoot - indexStart;
+        int indexLevels = index.getIndexLevels();
+
+        IndexedFile iFile = new IndexedFile(disk, recordSize, keySize, indexRecordSize, firstDataSector,
+                                            indexStart, indexSectors, indexRoot, indexLevels);
+
+
+
+        MountainRecord rec = new MountainRecord();
+        rec.setName("Agassiz Peak");
+        boolean found = iFile.findRecord(rec.recordToCharArray());
+
+        System.out.println(found);
 
         /*
-        char[] carr3 = new char[sectorSize];
-        disk.readSector(1588, carr3);
-        Buffer b3 = new Buffer(carr3, 34);
-        System.out.println(b3.toString());
-        */
-
         char[] carr4 = new char[sectorSize];
         disk.readSector(1631, carr4);
         Buffer b4 = new Buffer(carr4, 34);
@@ -103,9 +100,9 @@ public class Application {
         System.out.println(b6.toString());
 
         char[] carr1 = new char[sectorSize];
-        disk.readSector(1450, carr1);
+        disk.readSector(1456, carr1);
         Buffer b1 = new Buffer(carr1, recordSize);
         System.out.println(b1.toString());
-
+        */
     } // end main
 } // end application
