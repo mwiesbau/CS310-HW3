@@ -19,8 +19,22 @@ class MountainRecord {
     } // end constructor
 
 
+    public MountainRecord() {
 
-    public char[] getMountainRecordAsChar() {
+    }
+
+
+    public String getName() {
+        return this.name;
+    }
+
+
+    public int getKeySize() {
+        return nameSize;
+    }
+
+
+    public char[] recordToCharArray() {
     /// THIS METHOD RETURNS THE MOUNTAIN RECORD AS AN ARRAY OF CHARACTERS
 
         char[] record = new char[nameSize + countrySize + elevationSize];
@@ -48,5 +62,19 @@ class MountainRecord {
     }
 
 
+    public void charArrayToRecord(char[] record) {
+
+        String recordString = new String(record);
+        this.name = recordString.substring(0, nameSize);
+        this.country = recordString.substring(nameSize, nameSize + countrySize);
+        this.elevation = recordString.substring(nameSize + countrySize, record.length);
+
+    } // end charArrayToRecord
+
+
+    public String toString() {
+        String output = "Name: " + this.name + " Country: " + this.country + "Elevation : " + this.elevation;
+        return output;
+    }
 
 } // end class

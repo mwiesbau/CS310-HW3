@@ -4,16 +4,15 @@ import java.io.FileNotFoundException;
 
 public class Application {
 
-    public static void writeFileToDisk(Disk disk, String filename) {
-        int currentSector = 0;
-
+    public static int writeFileToDisk(Disk disk, String filename, int startSector, int recordSize) {
+        int currentSector = startSector;
 
         // TRY TO LOAD FILE
         try {
             Scanner sc = new Scanner(new File(filename)).useDelimiter(System.getProperty("line.separator"));
 
             // CREATE BUFFER TO STORE RECORDS BEFORE WRITING TO DISK
-            Buffer buffer = new Buffer(disk.getSectorSize(), 60);
+            Buffer buffer = new Buffer(disk.getSectorSize(), recordSize);
 
             // LOAD EACHLINE
             while (sc.hasNextLine()) {
@@ -21,11 +20,11 @@ public class Application {
 
                 // PARSE LINE AND CREATE CHARACTER ARRAY
                 MountainRecord m = new MountainRecord(line);
-                char[] record = m.getMountainRecordAsChar();
+                char[] record = m.recordToCharArray();
 
                 // ADD THE RECORD TO THE BUFFER OR WRITE BUFFFER TO DISK IF FULL
                 if (buffer.isFull()) {
-                    System.out.println("Writing sector " + currentSector + " to disk.");
+                    //System.out.println("Writing sector " + currentSector + " to disk.");
                     disk.writeSector(currentSector, buffer.getBuffer());
                     currentSector++;
                     buffer.emptyBuffer();
@@ -36,51 +35,77 @@ public class Application {
             } // end while
 
             // WRITE BUFFER TO DISK AT THE END
-            System.out.println("Writing sector " + currentSector + " to disk.");
+            //System.out.println("Writing sector " + currentSector + " to disk.");
             disk.writeSector(currentSector, buffer.getBuffer());
-            currentSector++;
+            //currentSector++;
             buffer.emptyBuffer();
 
         // CATCH EXCEPTION IF FILE NOT FOUND
         } catch (FileNotFoundException e) {
             System.out.println("Could not find file " + filename);
         } // end try catch
+
+        // RETURNS THE LAST SECTOR ON THE DISK
+        return currentSector;
     } // end write file to disk
 
 
-    public static void printSector(Disk disk, int sectorNumber) {
-
-        char[] buff = new char[512];
-        disk.readSector(sectorNumber, buff);
-
-        for (int i = 0; i < buff.length; i++) {
-            // PRINT NEW LINE IF AT THE END OF RECORD
-            if ((i) % 60 == 0) {
-                System.out.println();
-            } // end if
-
-            // REPLACE EMPTY CARACTERS WITH UNDERLINE
-            if (buff[i] == '\000') {
-                System.out.print("_");
-            } else {
-                System.out.print(buff[i]);
-            } // end if else
-        } // end for
-    } // end print sector
 
     public static void main(String args[]) {
         int sectorSize = 512;
         int sectors = 10000;
+        int keySize = 27;
+        int firstDataSector = 1000;
+        int lastDataSector;
+        int recordSize = 60;
 
         String filename = "mountains.txt";
         Disk disk = new Disk(sectors, sectorSize);
 
-        writeFileToDisk(disk, filename);
-        printSector(disk, 5);
+        lastDataSector = writeFileToDisk(disk, filename, 1000, recordSize);
 
+        /*
+        char[] carr1 = new char[sectorSize];
+        disk.readSector(1587, carr1);
+        Buffer b1 = new Buffer(carr1, recordSize);
+        System.out.println(b1.toString());
 
+        char[] carr2 = new char[sectorSize];
+        disk.readSector(1588, carr2);
+        Buffer b2 = new Buffer(carr2, recordSize);
+        System.out.println(b2.toString());
+        */
 
+        Index index = new Index(disk, sectorSize, keySize, firstDataSector, lastDataSector, recordSize, 7);
 
+        index.buildIndex();
+
+        /*
+        char[] carr3 = new char[sectorSize];
+        disk.readSector(1588, carr3);
+        Buffer b3 = new Buffer(carr3, 34);
+        System.out.println(b3.toString());
+        */
+
+        char[] carr4 = new char[sectorSize];
+        disk.readSector(1631, carr4);
+        Buffer b4 = new Buffer(carr4, 34);
+        System.out.println(b4.toString());
+
+        char[] carr5 = new char[sectorSize];
+        disk.readSector(1630, carr5);
+        Buffer b5 = new Buffer(carr5, 34);
+        System.out.println(b5.toString());
+
+        char[] carr6 = new char[sectorSize];
+        disk.readSector(1618, carr6);
+        Buffer b6 = new Buffer(carr6, 34);
+        System.out.println(b6.toString());
+
+        char[] carr1 = new char[sectorSize];
+        disk.readSector(1450, carr1);
+        Buffer b1 = new Buffer(carr1, recordSize);
+        System.out.println(b1.toString());
 
     } // end main
 } // end application
