@@ -68,21 +68,22 @@ public class IndexedFile
        //System.out.println("Key: " + keyString);
 
        for (int i = 0; i < indexLevels; i++) {
-           int smallestRelativeSize = 1000;
+           int smallestRelativeSize = 10000;
            char[] chars = new char[disk.getSectorSize()];
            disk.readSector(nextNodeIndex, chars);
            Buffer buff = new Buffer(chars, indexRecordSize);
 
+           int counter = 0;
            // ITERATE OVER NODE ENTRIES
            while (!buff.isEmpty()) {
-
+               counter++;
                // GET A RECORD FROM BUFFER
                char[] node = buff.removeRecord();
                // CONVERT RECORD TO STRING
                String nodeString = new String(node);
                // SPLIT OFF KEY FIELD
                String nodeKey = nodeString.substring(0, keySize - 1);
-               //System.out.print(" | Node: " + nodeKey);
+
                // SPLIT OFF POOINTER AND CONVERT TO NUMBER
                String numberString = nodeString.substring(keySize, indexRecordSize-1);
                numberString = numberString.replaceAll("[^\\d]", "");    // REMOVE ALL NON NUMERICAL CHARACTERS
@@ -90,14 +91,12 @@ public class IndexedFile
 
                // COMPARE SEARCH KEY WITH RECORD KEY
                int relativeSize = keyString.compareTo(nodeKey);
-               //System.out.println(" | " + relativeSize);
                // IF THE CURRENT KEY IS CLOSER TO THE SEARCH KEY UPDATE REFERENCES
-               if (relativeSize < smallestRelativeSize && relativeSize >= 0) {
+               if (relativeSize >= 0 ) {
                    smallestRelativeSize = relativeSize;
                    nextNodeIndex = nodeIndex;
                } // end if
            } // end while
-           //System.out.println("Smallest Node = " + nextNodeIndex);
        } // end for
     return nextNodeIndex;
    } // end get sector

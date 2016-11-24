@@ -78,10 +78,14 @@ public class Application {
 
 
         MountainRecord rec = new MountainRecord();
-        rec.setName("Agassiz Peak");
+        rec.setName("Zischgeles");
         boolean found = iFile.findRecord(rec.recordToCharArray());
 
         System.out.println(found);
+
+
+
+
 
         /*
         char[] carr4 = new char[sectorSize];
