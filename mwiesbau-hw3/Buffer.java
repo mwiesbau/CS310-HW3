@@ -23,15 +23,17 @@ public class Buffer {
     public Buffer(char[] sector, int recordSize) {
         this.buffer = sector;
         this.recordSize = recordSize;
-        int lastCharInBuffer = buffer.length - 1;
+        //int lastCharInBuffer = buffer.length - 1;
 
+        if (buffer != null) {
+            // DETERMINE FILL LEVEL BY FIDING THE LAST RECORD
+            for (int i = 0; i < (buffer.length - recordSize); i+=this.recordSize) {
+                if (!(buffer[i] == '\000')) {
+                    bufferFillLevel += recordSize;
+                } // end if
+            } // end for
+        }
 
-        // DETERMINE FILL LEVEL BY FIDING THE LAST RECORD
-        for (int i = 0; i < (buffer.length - recordSize); i+=this.recordSize) {
-            if (!(buffer[i] == '\000')) {
-                bufferFillLevel += recordSize;
-            } // end if
-        } // end for
     } // end constructor
 
     public char[] removeRecord() {
@@ -137,6 +139,8 @@ public class Buffer {
 
             if (searchRecordKeyString.equals(recordKeyString)) {
                 foundRecord = true;
+                // MAKE THE FOUND RECORD THE FIRST RECORD IN THE BUFFER
+                addRecord(recordFromBuffer);
                 return foundRecord;
             } // end if
         } // end while

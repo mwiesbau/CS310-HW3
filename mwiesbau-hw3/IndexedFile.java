@@ -32,6 +32,7 @@ public class IndexedFile
        this.indexLevels = indexLevels;
        this.overflowStart = indexRoot + 1;
        this.overflowSectors = 0;
+       this.buffer = new char[disk.getSectorSize()];
    } // end constructor
 
 
@@ -41,7 +42,6 @@ public class IndexedFile
        // 1st CASE
        // CHECK IF RECORD EXISTS
        if (findRecord(record) == true) {
-           System.out.println("RECORD ALREADY EXISTS");
            return false;
        } // end if
 
@@ -81,9 +81,9 @@ public class IndexedFile
        } // end if
 
        int currentOverFlowSector = indexRoot + overflowSectors;
-       char[] chars = new char[disk.getSectorSize()];
-       disk.readSector(currentOverFlowSector, chars);
-       Buffer buff = new Buffer(chars, recordSize);
+       //char[] chars = new char[disk.getSectorSize()];
+       disk.readSector(currentOverFlowSector, buffer);
+       Buffer buff = new Buffer(buffer, recordSize);
        buff.setRoomForAdditionalRecords(0);
 
        // IF THE BUFFER IS NOT FULL ADD RECORD AND SAVE TO DISK
@@ -113,13 +113,17 @@ public class IndexedFile
         int sector = getSector(searchRecordKeyString.toCharArray());
 
         // READ SECTOR INTO BUFFER
-        char[] chars = new char[disk.getSectorSize()];
-        disk.readSector(sector, chars);
-        Buffer buff = new Buffer(chars, recordSize);
+        //char[] chars = new char[disk.getSectorSize()];
+        disk.readSector(sector, buffer);
+        Buffer buff = new Buffer(buffer, recordSize);
 
         foundRecord = buff.findKeyInBuffer(record, keySize);
 
         if (foundRecord == true) {
+            //System.out.println(buff.toString());
+            MountainRecord result = new MountainRecord();
+            result.charArrayToRecord(buff.removeRecord());
+            System.out.println(result.toString());
             return foundRecord;
         }
 
@@ -130,13 +134,17 @@ public class IndexedFile
            // ITERATE OVER ALL OVERFLOW SECTORS
            for (int  i = overflowStart; i < (overflowStart + overflowSectors); i++) {
                 // READ EACH SECTOR INTO BUFFER
-               char[] charsO = new char[disk.getSectorSize()];
-               disk.readSector(i, charsO);
-               Buffer buffO = new Buffer(charsO, recordSize);
+               disk.readSector(i, buffer);
+               Buffer buffO = new Buffer(buffer, recordSize);
                foundRecord = buffO.findKeyInBuffer(record, keySize);
+
+               if (foundRecord) {
+                    MountainRecord result = new MountainRecord();
+                    result.charArrayToRecord(buff.removeRecord());
+                    System.out.println(result.toString());
+               } // end if
            } // end for
        } // end if
-
 
        // 3rd CASE RECORD NOT FOUND
         return foundRecord;

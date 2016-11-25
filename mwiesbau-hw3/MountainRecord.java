@@ -90,7 +90,7 @@ class MountainRecord {
 
 
     public String toString() {
-        String output = "Name: " + this.name + " Country: " + this.country + "Elevation : " + this.elevation;
+        String output = "Name: " + this.name + " | Country: " + this.country + " | Elevation : " + this.elevation;
         return output;
     }
 
