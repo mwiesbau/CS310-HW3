@@ -30,53 +30,140 @@ public class IndexedFile
        this.indexSectors = indexSectors;
        this.indexRoot = indexRoot;
        this.indexLevels = indexLevels;
+       this.overflowStart = indexRoot + 1;
+       this.overflowSectors = 0;
    } // end constructor
 
 
 
-   public boolean insertRecord(char[] record)
-   {
-    return false;
+   public boolean insertRecord(char[] record) {
 
+       // 1st CASE
+       // CHECK IF RECORD EXISTS
+       if (findRecord(record) == true) {
+           System.out.println("RECORD ALREADY EXISTS");
+           return false;
+       } // end if
 
+       // 2nd CASE
+       // FIND THE DATA RECORD WHERE THE RECORD BELONGS ACCORDING TO INDEX
+       // AND TRY TO ADD THERE
+       String searchRecordString = new String(record);
+       String searchRecordKeyString = searchRecordString.substring(0, keySize - 1);
+       int dataSector = getSector(searchRecordKeyString.toCharArray());
+
+       // READ DATA SECTOR INTO BUFFER
+       char[] chars = new char[disk.getSectorSize()];
+       disk.readSector(dataSector, chars);
+       Buffer buff = new Buffer(chars, recordSize);
+       buff.setRoomForAdditionalRecords(0); // ALLOW THE SECTOR/BUFFER TO BE FILLED
+       // IF THERE IS ROOM IN THE DATA SECTOR ADD THE RECORD
+       if (!buff.isFull()) {
+           buff.addRecord(record);
+           disk.writeSector(dataSector, buff.getBuffer());
+           return true;
+       } // endif
+
+       // 3rd CASE
+       // ADD TO OVERFLOW SECTOR
+       addToOverFlow(record);
+       return true;
    }
-   public boolean findRecord(char[] record)
-   {
 
-        String recordString = new String(record);
-        int sector = getSector(recordString.substring(0, keySize - 1).toCharArray());
+   // ADDS DATA TO OVER FLOW SECTOR
+   private void addToOverFlow(char[] record) {
+   // ADDS RECORD TO LAST NOT FULL OVERFLOW
+   // OTHERWISE CREATES NEW OVERFLOW SECTOR
 
+       // READ CURRENT OVERFLOW SECTOR INTO BUFFER
+       if (overflowSectors == 0) {
+           overflowSectors = 1;
+       } // end if
+
+       int currentOverFlowSector = indexRoot + overflowSectors;
+       char[] chars = new char[disk.getSectorSize()];
+       disk.readSector(currentOverFlowSector, chars);
+       Buffer buff = new Buffer(chars, recordSize);
+       buff.setRoomForAdditionalRecords(0);
+
+       // IF THE BUFFER IS NOT FULL ADD RECORD AND SAVE TO DISK
+       if (!buff.isFull()) {
+           buff.addRecord(record);
+           disk.writeSector(currentOverFlowSector, buff.getBuffer());
+       // IF THE BUFFER IS FULL, CREATE NEW BUFFER ADD RECORD AND SAVE TO DISK
+       } else {
+           overflowSectors += 1;
+           currentOverFlowSector += 1;
+           buff.emptyBuffer();
+           buff.addRecord(record);
+           disk.writeSector(currentOverFlowSector, buff.getBuffer());
+       } // end if else
+   } // end add to overflow
+
+
+
+   // RETURNS TRUE IF THE RECORD WAS FOUND IN EITHER THE DATA OR OVERFLOW PORTION
+   public boolean findRecord(char[] record) {
+       String searchRecordString = new String(record);
+       String searchRecordKeyString = searchRecordString.substring(0, keySize - 1);
+       boolean foundRecord = false;
+
+        // 1st CASE
+        // GET THE DATA SECTOR THE RECORD SHOULD BE IN
+        int sector = getSector(searchRecordKeyString.toCharArray());
+
+        // READ SECTOR INTO BUFFER
         char[] chars = new char[disk.getSectorSize()];
         disk.readSector(sector, chars);
         Buffer buff = new Buffer(chars, recordSize);
 
-        System.out.println(buff.toString());
+        foundRecord = buff.findKeyInBuffer(record, keySize);
 
-        return true;
+        if (foundRecord == true) {
+            return foundRecord;
+        }
 
-   }
+       // 2nd CASE
+       // LOOK IN THE OVERFLOW SECTORS IF NO RECORDS WERE FOUND IN THE DATA SECTORS
+       // IF OVERFLOW SECTORS EXIST
+       if (overflowSectors > 0) {
+           // ITERATE OVER ALL OVERFLOW SECTORS
+           for (int  i = overflowStart; i < (overflowStart + overflowSectors); i++) {
+                // READ EACH SECTOR INTO BUFFER
+               char[] charsO = new char[disk.getSectorSize()];
+               disk.readSector(i, charsO);
+               Buffer buffO = new Buffer(charsO, recordSize);
+               foundRecord = buffO.findKeyInBuffer(record, keySize);
+           } // end for
+       } // end if
+
+
+       // 3rd CASE RECORD NOT FOUND
+        return foundRecord;
+   } // end findRecord
 
    // there is no delete operation
-   private int getSector(char[] key)   // returns sector number indicated by key
-   {
-        // KEEP TRACK OF SMALLEST RELATIVE KEY DIFFERENCE
+   // Returns sector number for data sector only
+   private int getSector(char[] key)  {
        // START AT ROOT NODE
+       // VARIABLE TO TRAVERSE THROUGH INDEX TREE
        int nextNodeIndex = indexRoot;
 
        // CONVERT SEARCH KEY TO STRING
        String keyString = new String(key);
-       //System.out.println("Key: " + keyString);
 
+       // ITERATE THROUGH THE TREE LEVELS
        for (int i = 0; i < indexLevels; i++) {
-           int smallestRelativeSize = 10000;
+           int smallestRelativeSize = 0;
+
+           // READ INDEX NODE SECTOR INTO BUFFER
            char[] chars = new char[disk.getSectorSize()];
            disk.readSector(nextNodeIndex, chars);
            Buffer buff = new Buffer(chars, indexRecordSize);
 
-           int counter = 0;
            // ITERATE OVER NODE ENTRIES
            while (!buff.isEmpty()) {
-               counter++;
+
                // GET A RECORD FROM BUFFER
                char[] node = buff.removeRecord();
                // CONVERT RECORD TO STRING
@@ -100,5 +187,4 @@ public class IndexedFile
        } // end for
     return nextNodeIndex;
    } // end get sector
-   
-}
+} // end class

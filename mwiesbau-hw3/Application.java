@@ -50,8 +50,30 @@ public class Application {
     } // end write file to disk
 
 
+    public static void showMenu() {
+        System.out.println();
+        System.out.format("----------------------------------------\n");
+        System.out.format("|                  MENU                |\n");
+        System.out.format("----------------------------------------\n");
+        System.out.format("|%20s", "Insert Record [i]");
+        System.out.format("%20s", "Quit [q]  |\n");
+        System.out.format("|%20s", "Search record [s]");
+        System.out.format("%19s", "|");
+        System.out.format("\n----------------------------------------\n");
+    } // end show menu
+
+
+    /* GETS INPUT FROM USER AND RETURNS INPUT STRING */
+    public static String getInput(String prompt) {
+        Scanner scan = new Scanner(System.in);
+        System.out.print(prompt);
+        String input = scan.next();
+        return input;
+    } // end getInput()
 
     public static void main(String args[]) {
+        String userInput;
+        Boolean quit = false;
         int sectorSize = 512;
         int sectors = 10000;
         int keySize = 27;
@@ -76,37 +98,58 @@ public class Application {
                                             indexStart, indexSectors, indexRoot, indexLevels);
 
 
+        while (quit == false) {
+            showMenu();
+            userInput = getInput("-> ");
+
+            switch (userInput) {
+                case "q":
+                    quit = true;
+                    break;
+
+                case "i":
+                    //String name = getInput("Mountain Name -> ");
+                    //String county = getInput("Country -> ");
+                    //String elevation = getInput("Elevation -> ");
+
+                    MountainRecord newRec = new MountainRecord();
+                    newRec.setName(getInput("Mountain Name -> "));
+                    newRec.setCountry(getInput("Country -> "));
+                    newRec.setElevation(getInput("Elevation -> "));
+                    iFile.insertRecord(newRec.recordToCharArray());
+                    break;
+
+                case "s":
+                    String key = getInput("Mountain Name -> ");
+                    MountainRecord rec = new MountainRecord();
+                    rec.setName(key);
+                    boolean found = iFile.findRecord(rec.recordToCharArray());
+                    if (found) {
+                        System.out.println("'" + key + "' FOUND in file.");
+                        break;
+                    } // end if
+                    System.out.println("'" + key + "' NOT FOUND in file.");
+                    break;
+
+
+
+            } // end switch
+
+        } // end while
+
+        for (int i = 0; i < 26; i ++) {
+            MountainRecord rec1 = new MountainRecord();
+            rec1.setName("A" + i);
+            rec1.setCountry("Austria");
+            rec1.setElevation("12000");
+            iFile.insertRecord(rec1.recordToCharArray());
+        }
 
         MountainRecord rec = new MountainRecord();
-        rec.setName("Zischgeles");
+        rec.setName("A26");
         boolean found = iFile.findRecord(rec.recordToCharArray());
-
-        System.out.println(found);
-
+        System.out.println("Record found :" + found);
 
 
-
-
-        /*
-        char[] carr4 = new char[sectorSize];
-        disk.readSector(1631, carr4);
-        Buffer b4 = new Buffer(carr4, 34);
-        System.out.println(b4.toString());
-
-        char[] carr5 = new char[sectorSize];
-        disk.readSector(1630, carr5);
-        Buffer b5 = new Buffer(carr5, 34);
-        System.out.println(b5.toString());
-
-        char[] carr6 = new char[sectorSize];
-        disk.readSector(1618, carr6);
-        Buffer b6 = new Buffer(carr6, 34);
-        System.out.println(b6.toString());
-
-        char[] carr1 = new char[sectorSize];
-        disk.readSector(1456, carr1);
-        Buffer b1 = new Buffer(carr1, recordSize);
-        System.out.println(b1.toString());
-        */
     } // end main
 } // end application

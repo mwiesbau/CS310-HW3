@@ -37,6 +37,15 @@ class MountainRecord {
 
     }
 
+    public void setCountry(String country) {
+        this.country = country;
+    }
+
+    public void setElevation(String elevation) {
+        this.elevation = elevation;
+    }
+
+
     public int getKeySize() {
         return nameSize;
     }

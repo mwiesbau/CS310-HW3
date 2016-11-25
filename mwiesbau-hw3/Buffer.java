@@ -1,8 +1,11 @@
+// THIS IS A HELPER CLASS TO DEAL WITH READING AND
+// WRITING THE DISK BUFFER
+// CAN HANDLE BOTH THE RECORDS AND THE INDEX NODES
 public class Buffer {
     private char[] buffer;
-    private int recordSize;
+    private int recordSize;       // SIZE OF THE RECORD STORED 60 for DATA, 34 FOR INDEX NODE
     private int bufferFillLevel;
-    private int roomForAdditionalRecords = 3;
+    private int roomForAdditionalRecords = 3; // SPECIFIES HOW MUCH ROOM SHOULD BE LEFT
 
     public Buffer(int bufferSize, int recordSize) {
         this.buffer = new char[bufferSize];
@@ -23,29 +26,33 @@ public class Buffer {
         int lastCharInBuffer = buffer.length - 1;
 
 
-        // FIND THE LAST RECORD NON EMPTY RECORD
-        while (buffer[lastCharInBuffer] == '\000' && lastCharInBuffer > 0) {
-            lastCharInBuffer -= 1;
-        } // end while
-
-        bufferFillLevel = ((lastCharInBuffer / recordSize) + 1) * recordSize;
-    }
+        // DETERMINE FILL LEVEL BY FIDING THE LAST RECORD
+        for (int i = 0; i < (buffer.length - recordSize); i+=this.recordSize) {
+            if (!(buffer[i] == '\000')) {
+                bufferFillLevel += recordSize;
+            } // end if
+        } // end for
+    } // end constructor
 
     public char[] removeRecord() {
-
+    // REMVOES FIRST RECORD IN BUFFER
         int recordStart = 0;
 
-        while (buffer[recordStart] == '\000') {
+        // DETERMINES THE NEXT RECORD LOCATION
+
+        while (buffer[recordStart] == '\000' && recordStart < (buffer.length - 2*recordSize)) {
             recordStart += recordSize;
         } // end while
 
-
+        // CONVERT RECORD TO STRING
         String record = new String(buffer).substring(recordStart, recordStart+recordSize);
 
+        // DELETE RECORD FROM BUFFER
         for (int i = recordStart; i < recordStart + recordSize; i++) {
             buffer[i] = '\000';
         } // end for
 
+        // ADJUST VARIABLES AND RETURN
         bufferFillLevel -= recordSize;
         return record.toCharArray();
     } // end remove Record
@@ -65,7 +72,6 @@ public class Buffer {
         bufferFillLevel += record.length;
     } // end addRecord
 
-
     public void emptyBuffer() {
     // CLEARS THE BUFFER
         bufferFillLevel = 0;
@@ -73,15 +79,12 @@ public class Buffer {
         buffer = newBuffer;
     } // end emptyBuffer
 
-
     public boolean isFull() {
-    // IS FULL IF ONLY THREE MORE RECORDS CAN BE STORED
-        if ((buffer.length - bufferFillLevel) > ((roomForAdditionalRecords + 1) * recordSize)) {
+        if ((buffer.length - bufferFillLevel) >= ((roomForAdditionalRecords + 1) * recordSize)) {
             return false;
         } // end if
         return true;
     } // end is full
-
 
     public boolean isEmpty() {
 
@@ -94,7 +97,6 @@ public class Buffer {
     public char[] getBuffer() {
         return buffer;
     }
-
 
     public String toString() {
         StringBuilder output = new StringBuilder();
@@ -116,6 +118,38 @@ public class Buffer {
         } // end for
     return output.toString();
     } // end print sector
+
+
+
+    public boolean findKeyInBuffer(char[] record, int keySize) {
+
+        String searchRecordString = new String(record);
+        String searchRecordKeyString = searchRecordString.substring(0, keySize - 1);
+        boolean foundRecord = false;
+
+        while (!isEmpty()) {
+            // GET A RECORD FROM BUFFER
+            char[] recordFromBuffer = removeRecord();
+            // CONVERT RECORD TO STRING
+            String recordString = new String(recordFromBuffer);
+            // SPLIT OFF KEY FIELD
+            String recordKeyString = recordString.substring(0, keySize - 1);
+
+            if (searchRecordKeyString.equals(recordKeyString)) {
+                foundRecord = true;
+                return foundRecord;
+            } // end if
+        } // end while
+
+        return foundRecord;
+    } // end findKeyInBuffer
+
+    public void setRoomForAdditionalRecords(int numberOfRecords) {
+        // ONLY ALLOW A REDUCTION NO INCREASE TO AVOID ISSUES
+        if (numberOfRecords <= this.roomForAdditionalRecords) {
+            this.roomForAdditionalRecords = numberOfRecords;
+        } // end if
+    } // ennd setRoomForAdditionalRecord
 
 
 
