@@ -119,13 +119,13 @@ public class IndexedFile
 
         foundRecord = buff.findKeyInBuffer(record, keySize);
 
+
         if (foundRecord == true) {
-            //System.out.println(buff.toString());
-            MountainRecord result = new MountainRecord();
-            result.charArrayToRecord(buff.removeRecord());
-            System.out.println(result.toString());
+            // REASSIGN THE FOUND RECORD TO THE PASSED CHARACTER ARRAY
+            char[] foundRec = buff.removeRecord();
+            java.lang.System.arraycopy(foundRec, 0, record, 0, record.length-1);
             return foundRecord;
-        }
+        } // END IF
 
        // 2nd CASE
        // LOOK IN THE OVERFLOW SECTORS IF NO RECORDS WERE FOUND IN THE DATA SECTORS

@@ -97,21 +97,20 @@ public class Application {
         IndexedFile iFile = new IndexedFile(disk, recordSize, keySize, indexRecordSize, firstDataSector,
                                             indexStart, indexSectors, indexRoot, indexLevels);
 
-
+        // LOOP FOR USER INTERACTION
         while (quit == false) {
             showMenu();
             userInput = getInput("-> ");
 
             switch (userInput) {
+
+                // QUIT THE PROGRAM
                 case "q":
                     quit = true;
                     break;
 
+                // INSERT A NEW MOUNTAIN RECORD
                 case "i":
-                    //String name = getInput("Mountain Name -> ");
-                    //String county = getInput("Country -> ");
-                    //String elevation = getInput("Elevation -> ");
-
                     MountainRecord newRec = new MountainRecord();
                     newRec.setName(getInput("Mountain Name -> "));
                     newRec.setCountry(getInput("Country -> "));
@@ -126,37 +125,22 @@ public class Application {
 
                     break;
 
+                // SEARCH FOR A KEY
                 case "s":
                     String key = getInput("Mountain Name -> ");
                     MountainRecord rec = new MountainRecord();
                     rec.setName(key);
-                    boolean found = iFile.findRecord(rec.recordToCharArray());
+                    char [] recordChar = rec.recordToCharArray();
+                    boolean found = iFile.findRecord(recordChar);
                     if (found) {
-                        //System.out.println("'" + key + "' FOUND in file.");
+                        rec.charArrayToRecord(recordChar);
+                        System.out.println("'" + key + "' FOUND.");
+                        System.out.println(rec.toString());
                         break;
                     } // end if
                     System.out.println("'" + key + "' NOT FOUND in file.");
                     break;
-
-
-
             } // end switch
-
         } // end while
-
-        //for (int i = 0; i < 26; i ++) {
-        //    MountainRecord rec1 = new MountainRecord();
-        //    rec1.setName("A" + i);
-        //    rec1.setCountry("Austria");
-        //    rec1.setElevation("12000");
-        //    iFile.insertRecord(rec1.recordToCharArray());
-        //}
-
-        //MountainRecord rec = new MountainRecord();
-        //rec.setName("A26");
-        //boolean found = iFile.findRecord(rec.recordToCharArray());
-        //System.out.println("Record found :" + found);
-
-
     } // end main
 } // end application
